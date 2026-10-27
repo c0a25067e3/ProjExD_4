@@ -72,6 +72,8 @@ class Bird(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = xy
         self.speed = 10
+        self.state = "normal" #muteki
+        self.hyper_life = 0 #muteki
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -99,6 +101,16 @@ class Bird(pg.sprite.Sprite):
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
             self.dire = tuple(sum_mv)
             self.image = self.imgs[self.dire]
+
+        if self.state == "hyper": #muteki↓
+            self.hyper_life -= 1
+            if self.hyper_life <= 0:
+                self.state = "normal"
+        if self.state == "hyper":
+            self.image = pg.transform.laplacian(self.imgs[self.dire])
+        else:
+            self.image = self.imgs[self.dire] #muteki↑
+
         screen.blit(self.image, self.rect)
 
 
@@ -324,7 +336,7 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load(f"fig/pg_bg.jpg")
     score = Score()
-    life = Life()
+    life = Life(3)
 
     bird = Bird(3, (900, 400))
     bombs = pg.sprite.Group()
@@ -354,6 +366,13 @@ def main():
             if event.type == pg.KEYDOWN and event.key == pg.K_e and score.value >= 20:
                 score.value -= 20
                 EMPs.add(EMP(emys, bombs, screen))
+
+            if event.type == pg.KEYDOWN and event.key == pg.K_RSHIFT: #muteki↓
+                if bird.state == "normal" and score.value > 1:
+                    bird.state = "hyper"
+                    bird.hyper_life = 500
+                    score.value -= 1 #muteki↑
+
         screen.blit(bg_img, [0, 0])
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             emys.add(Enemy())
@@ -380,17 +399,25 @@ def main():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
             score.value += 1  # 1点アップ
 
-        for bomb in pg.sprite.spritecollide(bird, bombs, True):  # こうかとんと衝突した爆弾リスト
+        for bomb in pg.sprite.spritecollide(bird, bombs, True):
+             # こうかとんと衝突した爆弾リスト
             if bomb.state == "inactive":
-                pass
-            else:
+                continue
+            elif bird.state == "hyper":
+                exps.add(Explosion(bomb,50))
+                score.value += 1
+                continue
+            life.num -= 1 
+            if life.num > 0:
                 bird.change_img(8, screen)  # こうかとん悲しみエフェクト
                 score.update(screen)
-                life.num -= 1
-            if life.num <= 0:
+
+            else:
+                bird.change_img(8,screen)
+                score.update(screen)
                 pg.display.update()
                 time.sleep(2)
-                return
+                return #muteki↑
 
         bird.update(key_lst, screen)
         beams.update()
