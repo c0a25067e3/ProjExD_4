@@ -282,10 +282,11 @@ def main():
             if event.type == pg.QUIT:
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                beams.add(Beam(bird))
-            if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT:  # 追加機能6,発動条件
-                neo_beams = NeoBeam(bird, 5)
-                beams.add(neo_beams.gen_beams())
+                if key_lst[pg.K_LSHIFT]:  # 追加機能6：発動条件
+                    neo_beams = NeoBeam(bird, 5)
+                    beams.add(neo_beams.gen_beams())
+                else:
+                    beams.add(Beam(bird))
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
