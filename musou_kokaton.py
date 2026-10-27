@@ -359,18 +359,11 @@ def main():
         for bomb in pg.sprite.spritecollide(bird, bombs, True):  # こうかとんと衝突した爆弾リスト
             bird.change_img(8, screen)  # こうかとん悲しみエフェクト
             score.update(screen)
-<<<<<<< HEAD
-            pg.display.update()
-            time.sleep(2)
-
-            return
-=======
             life.num -= 1
             if life.num <= 0:
                 pg.display.update()
                 time.sleep(2)
                 return
->>>>>>> 7b440c7905d2df57332046f4af79ea83be7e1e55
 
 
 
@@ -385,12 +378,9 @@ def main():
         exps.update()
         exps.draw(screen)
         score.update(screen)
-<<<<<<< HEAD
         gravities.draw(screen)
         gravities.update()
-=======
         life.update(screen)
->>>>>>> 7b440c7905d2df57332046f4af79ea83be7e1e55
         pg.display.update()
         tmr += 1
         clock.tick(50)
