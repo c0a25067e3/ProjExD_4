@@ -293,6 +293,8 @@ def main():
             if event.type == pg.KEYDOWN and event.key == pg.K_s and score.value >= 50:
                 shield.add(Shield(bird, life=400))
                 score.value -= 50
+                if len(shield.sprites()) > 1:
+                    shield.sprites()[0].kill()
 
         screen.blit(bg_img, [0, 0])
 
