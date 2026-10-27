@@ -318,6 +318,31 @@ class Life:
         for i in range(self.num):
             screen.blit(self.heart,(self.rect.centerx - 50*i,self.rect.centery))
 
+class Shield(pg.sprite.Sprite):
+    """
+    防御壁を出現させるクラス
+    """
+    def __init__(self, bird: Bird, life: int):
+        super().__init__()
+        width = 20
+        height = bird.image.get_height()*2
+        self.image = pg.Surface((width, height));
+        pg.draw.rect(self.image,(0,0,255),(0, 0,20,bird.rect.height*2)); 
+        self.rect = self.image.get_rect()
+
+        vx, vy = bird.dire;
+        ang = math.degrees(math.atan2(-vy, vx));
+        self.image = pg.transform.rotozoom(self.image, ang, 1.0)
+        self.image.set_colorkey((0,0,0))
+        self.rect.centerx = bird.rect.centerx + bird.rect.width*vx
+        self.rect.centery= bird.rect.centery + bird.rect.width*vy
+
+        self.life = 400
+    def update(self, screen: pg.Surface):
+        screen.blit(self.image, self.rect)
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
 
 def main():
     pg.display.set_caption("真！こうかとん無双")
@@ -333,6 +358,7 @@ def main():
     emys = pg.sprite.Group()
     gravities = pg.sprite.Group()
     EMPs = pg.sprite.Group()
+    shield = pg.sprite.Group()
 
     tmr = 0
     clock = pg.time.Clock()
@@ -354,6 +380,12 @@ def main():
             if event.type == pg.KEYDOWN and event.key == pg.K_e and score.value >= 20:
                 score.value -= 20
                 EMPs.add(EMP(emys, bombs, screen))
+            if event.type == pg.KEYDOWN and event.key == pg.K_s and score.value >= 50:
+                shield.add(Shield(bird, life=400))
+                score.value -= 50
+                if len(shield.sprites()) > 1:
+                    shield.sprites()[0].kill()
+
         screen.blit(bg_img, [0, 0])
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             emys.add(Enemy())
@@ -375,6 +407,9 @@ def main():
             exps.add(Explosion(emy, 100))  # 爆発エフェクト
             score.value += 10  # 10点アップ
             bird.change_img(6, screen)  # こうかとん喜びエフェクト
+
+        for bomb in pg.sprite.groupcollide(bombs,shield,True,False).keys(): #防御壁と衝突した爆弾リスト
+            exps.add(Explosion(bomb, 50)) #爆発エフェクト
 
         for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():  # ビームと衝突した爆弾リスト
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
@@ -405,6 +440,8 @@ def main():
         gravities.draw(screen)
         gravities.update()
         life.update(screen)
+        shield.update(screen)
+        shield.draw(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
